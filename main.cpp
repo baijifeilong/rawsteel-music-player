@@ -57,6 +57,10 @@ protected:
     }
 };
 
+QIcon getIcon(const QString &name) {
+    return QIcon::fromTheme(name, QIcon(QString("icons/%1").arg(name)));
+}
+
 class MyMusicPlayer : QWidget {
 public:
     MyMusicPlayer() { // NOLINT
@@ -84,9 +88,6 @@ private:
     QList<QUrl> urls;
     int lastLyricLine = -1;
 
-    QIcon getIcon(const QString &name) {
-        return QIcon::fromTheme(name, QIcon(QString("icons/%1").arg(name)));
-    }
 
     QIcon mediaPlaybackStartIcon;
     QIcon mediaPlaybackPauseIcon;
@@ -410,7 +411,7 @@ int main(int argc, char **argv) {
     QApplication application(argc, argv);
     application.setApplicationName("Rawsteel");
     application.setApplicationDisplayName("Rawsteel Music Player");
-    application.setWindowIcon(QIcon::fromTheme("audio-headphones"));
+    application.setWindowIcon(getIcon("audio-headphones"));
     new MyMusicPlayer;
     return application.exec();
 }
