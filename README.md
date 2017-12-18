@@ -20,7 +20,7 @@ Drag music files to playlist view
 
 1. Application need Qt5 support
 2. Application icons are got from system theme
-3. Application need GStreamer support
+3. Application need GStreamer support on Linux
 4. Application support audio formats that GStreamer support
 5. Best supported filename format: `artist-song.wma`, `artist-song.lrc`
 
@@ -42,6 +42,8 @@ Drag music files to playlist view
 ## Snapshot
 
 <img src="https://raw.githubusercontent.com/baijifeilong/resources/master/rawsteel-music-player/1.png" alt="Snapshot" width="500px"/>
+<br/>
+<img src="https://raw.githubusercontent.com/baijifeilong/resources/master/rawsteel-music-player/2.png" alt="Snapshot2" width="500px"/>
 
 ## License
 
