@@ -7,6 +7,6 @@ set(CMAKE_AUTOMOC ON)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Multimedia REQUIRED)
 
-add_executable(RawsteelMusicPlayer main.cpp)
+add_executable(RawsteelMusicPlayer WIN32 main.cpp)
 
 target_link_libraries(RawsteelMusicPlayer Qt5::Widgets Qt5::Multimedia)

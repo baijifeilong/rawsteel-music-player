@@ -12,6 +12,7 @@
 #include <QtWidgets/QScrollBar>
 #include <QtMultimedia/QMediaPlayer>
 #include <QtMultimedia/QMediaPlaylist>
+#include <QtCore/QTime>
 
 struct LyricEntry {
     int start = 0;
@@ -408,6 +409,8 @@ private:
 
 
 int main(int argc, char **argv) {
+    // Use real random playback for Qt version lower than 5.10
+    srand(static_cast<unsigned int>(QTime::currentTime().msec()));
     QApplication application(argc, argv);
     application.setApplicationName("Rawsteel");
     application.setApplicationDisplayName("Rawsteel Music Player");
