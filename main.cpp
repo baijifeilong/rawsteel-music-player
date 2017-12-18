@@ -212,8 +212,14 @@ private:
             this->progressSlider->setValue(static_cast<int>(position * 300 / mediaPlayer->duration()));
             auto total = mediaPlayer->duration() / 1000;
             auto current = position / 1000;
-            QString str;
-            str.sprintf("%d:%d/%d:%d", current / 60, current % 60, total / 60, total % 60);
+            QString str = QString("%1:%2/%3:%4")
+                    .arg(current / 60)
+                    .arg(current % 60, 2, 10, QLatin1Char('0'))
+                    .arg(total / 60)
+                    .arg(total % 60, 2, 10, QLatin1Char('0'));
+
+            // Weired bug: sprintf output wrong result in windows
+            // str.sprintf("%d:%d/%d:%d", current / 60, current % 60, total / 60, total % 60);
             progressLabel->setText(str);
             this->progressSlider->blockSignals(false);
             this->refreshLyric();
