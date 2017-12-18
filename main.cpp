@@ -80,6 +80,7 @@ private:
     QDial *dial;
     QFile *playlistFile;
     QList<LyricEntry> lyrics;
+    QList<QUrl> urls;
     int lastLyricLine = -1;
 
     void setupLayout() {
@@ -338,24 +339,27 @@ private:
 
 protected:
 
-    // Accept dragEnter
+    /// Accept dragEnter
+    /// When dragging thousands of files, the urls may be empty sometimes.
+    /// So save them for reading in dropEvent
     void dragEnterEvent(QDragEnterEvent *event) override {
-        auto mimeData = event->mimeData();
-        if (mimeData->hasUrls()) {
-            for (const auto &url: mimeData->urls()) {
-                qDebug() << url.toString();
-                if (url.toString().contains(QRegExp("(mp3|wma|ogg)$"))) {
-                    event->accept();
-                }
+        event->accept();
+        this->urls.empty();
+        auto urls = event->mimeData()->urls();
+        qDebug() << "Drag size" << urls.size();
+        for (const auto &url: urls) {
+            if (url.toString().contains(QRegExp("(mp3|wma|ogg)$"))) {
+                this->urls.append(url);
             }
         }
     }
 
-    // Accept drop
+    /// Accept drop
     void dropEvent(QDropEvent *event) override {
+        qDebug() << "Drop size" << event->mimeData()->urls().size();
         playlistFile->open(QIODevice::Append | QIODevice::Text);
         QTextStream stream(playlistFile);
-        for (const auto &url: event->mimeData()->urls()) {
+        for (const auto &url: this->urls) {
             playlist->addMedia(QUrl(url));
             stream << url.path() << "\n";
         }
