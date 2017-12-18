@@ -23,7 +23,8 @@ QList<LyricEntry> parseLyric(const QString &lyric) {
     auto lines = lyric.split('\n');
     QRegExp regExp("\\\[(\\\d{2}):([\\\d\\\.]{5})\\\](.+)");
     for (auto &line: lyric.split("\n")) {
-        if (line.at(0) == '[' && line.at(10) == '[') {
+        line = line.trimmed();
+        if (line.size() > 10 && line.at(0) == '[' && line.at(10) == '[') {
             line = line.mid(10);
         }
         if (line.indexOf(regExp) >= 0) {
@@ -83,26 +84,44 @@ private:
     QList<QUrl> urls;
     int lastLyricLine = -1;
 
+    QIcon getIcon(const QString &name) {
+        return QIcon::fromTheme(name, QIcon(QString("icons/%1").arg(name)));
+    }
+
+    QIcon mediaPlaybackStartIcon;
+    QIcon mediaPlaybackPauseIcon;
+    QIcon mediaSkipBackwardIcon;
+    QIcon mediaSkipForwardIcon;
+    QIcon mediaPlaylistShuffleIcon;
+    QIcon mediaPlaylistRepeatIcon;
+
     void setupLayout() {
+        mediaPlaybackStartIcon = getIcon("media-playback-start");
+        mediaPlaybackPauseIcon = getIcon("media-playback-pause");
+        mediaSkipBackwardIcon = getIcon("media-skip-backward");
+        mediaSkipForwardIcon = getIcon("media-skip-forward");
+        mediaPlaylistShuffleIcon = getIcon("media-playlist-shuffle");
+        mediaPlaylistRepeatIcon = getIcon("media-playlist-repeat");
+
         QSize iconSize(50, 50);
 
         playButton = new QToolButton;
-        playButton->setIcon(QIcon::fromTheme("media-playback-start"));
+        playButton->setIcon(mediaPlaybackStartIcon);
         playButton->setIconSize(iconSize);
         playButton->setAutoRaise(true);
 
         prevButton = new QToolButton;
-        prevButton->setIcon(QIcon::fromTheme("media-skip-backward"));
+        prevButton->setIcon(mediaSkipBackwardIcon);
         prevButton->setIconSize(iconSize);
         prevButton->setAutoRaise(true);
 
         nextButton = new QToolButton;
-        nextButton->setIcon(QIcon::fromTheme("media-skip-forward"));
+        nextButton->setIcon(mediaSkipForwardIcon);
         nextButton->setIconSize(iconSize);
         nextButton->setAutoRaise(true);
 
         playbackModeButton = new QToolButton;
-        playbackModeButton->setIcon(QIcon::fromTheme("media-playlist-shuffle"));
+        playbackModeButton->setIcon(mediaPlaylistShuffleIcon);
         playbackModeButton->setIconSize(iconSize);
         playbackModeButton->setAutoRaise(true);
 
@@ -172,9 +191,9 @@ private:
 
         QObject::connect(mediaPlayer, &QMediaPlayer::stateChanged, [this](QMediaPlayer::State state) {
             if (state == QMediaPlayer::State::PlayingState) {
-                this->playButton->setIcon(QIcon::fromTheme("media-playback-pause"));
+                this->playButton->setIcon(mediaPlaybackPauseIcon);
             } else {
-                this->playButton->setIcon(QIcon::fromTheme("media-playback-start"));
+                this->playButton->setIcon(mediaPlaybackStartIcon);
             }
         });
 
@@ -184,6 +203,9 @@ private:
             this->mediaPlayer->blockSignals(false);
         });
         QObject::connect(mediaPlayer, &QMediaPlayer::positionChanged, [this](qint64 position) {
+            if (mediaPlayer->duration() == 0) {
+                return;
+            }
             this->progressSlider->blockSignals(true);
             this->progressSlider->setValue(static_cast<int>(position * 300 / mediaPlayer->duration()));
             auto total = mediaPlayer->duration() / 1000;
@@ -217,6 +239,7 @@ private:
         playlistFile->close();
         playlistFile->open(QIODevice::ReadOnly | QIODevice::Text);
         QTextStream stream(playlistFile);
+        stream.setCodec("UTF-8");
         while (!stream.atEnd()) {
             QString line = stream.readLine().trimmed();
             if (!line.isEmpty()) {
@@ -237,10 +260,10 @@ private:
     void togglePlaybackMode() {
         if (playlist->playbackMode() == QMediaPlaylist::PlaybackMode::Random) {
             playlist->setPlaybackMode(QMediaPlaylist::PlaybackMode::Loop);
-            playbackModeButton->setIcon(QIcon::fromTheme("media-playlist-repeat"));
+            playbackModeButton->setIcon(mediaPlaylistRepeatIcon);
         } else {
             playlist->setPlaybackMode(QMediaPlaylist::PlaybackMode::Random);
-            playbackModeButton->setIcon(QIcon::fromTheme("media-playlist-shuffle"));
+            playbackModeButton->setIcon(mediaPlaylistShuffleIcon);
         }
     }
 
@@ -286,9 +309,10 @@ private:
     void updateLyric() {
         auto currentMedia = playlist->currentMedia();
         auto url = currentMedia.canonicalUrl();
-        auto path = QString(url.path());
+        auto path = QString(url.toLocalFile());
         path.replace(QRegExp("(wma|mp3|ogg)$"), "lrc");
         QFile file(path);
+        lyrics.clear();
         if (!file.exists()) {
             lyricLabel->setText("Lyric not exist: " + path);
         } else if (!file.open(QFile::ReadOnly)) {
@@ -296,12 +320,15 @@ private:
         } else {
             QTextStream in(&file);
             in.setCodec("GBK");
-            lyrics = parseLyric(in.readAll());
+            lyrics.append(parseLyric(in.readAll()));
             refreshLyric(true);
         }
     }
 
     void refreshLyric(bool forceRefresh = false) {
+        if (lyrics.isEmpty()) {
+            return;
+        }
         QString newLyric;
         int currLine = currentLyricLine();
         if (currLine == lastLyricLine && !forceRefresh) {
@@ -344,9 +371,9 @@ protected:
     /// So save them for reading in dropEvent
     void dragEnterEvent(QDragEnterEvent *event) override {
         event->accept();
-        this->urls.empty();
         auto urls = event->mimeData()->urls();
-        qDebug() << "Drag size" << urls.size();
+        qDebug() << "Drag size" << event->mimeData()->urls().size();
+        this->urls.clear();
         for (const auto &url: urls) {
             if (url.toString().contains(QRegExp("(mp3|wma|ogg)$"))) {
                 this->urls.append(url);
@@ -359,6 +386,7 @@ protected:
         qDebug() << "Drop size" << event->mimeData()->urls().size();
         playlistFile->open(QIODevice::Append | QIODevice::Text);
         QTextStream stream(playlistFile);
+        stream.setCodec("UTF-8");
         for (const auto &url: this->urls) {
             playlist->addMedia(QUrl(url));
             stream << url.path() << "\n";
