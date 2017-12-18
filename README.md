@@ -8,6 +8,10 @@ A minimal music player support lyric show
 - Support .wma, .mp3, .ogg
 - Support Linux, UNIX, macOS and Windows
 
+## Download
+
+[Releases](https://github.com/baijifeilong/rawsteel-music-player/releases)
+
 ## How to use
 
 Drag music files to playlist view
