@@ -16,6 +16,13 @@ A minimal music player support lyric show
 
 Drag music files to playlist view
 
+## Attentions
+
+1. Application need Qt5 support
+2. Application icons are got from system theme
+3. Application need GStreamer support
+4. Application support audio formats that GStreamer support
+
 ## How to build
 
 1. `mkdir release`
