@@ -308,7 +308,7 @@ private:
             for (auto ch : artist) {
                 artistLength += ch.unicode() > 999 ? 2 : 1;
             }
-            auto tabs = artistLength > 8 ? "\t" : "\t\t";
+            auto tabs = artistLength > 9 ? "\t" : "\t\t";
             auto str = QString("%1\t%2%3%4").arg(QString::number(i), artist, tabs, title);
             listWidget->addItem(str);
         }
