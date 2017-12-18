@@ -22,6 +22,7 @@ Drag music files to playlist view
 2. Application icons are got from system theme
 3. Application need GStreamer support
 4. Application support audio formats that GStreamer support
+5. Best supported filename format: `artist-song.wma`, `artist-song.lrc`
 
 ## How to build
 
